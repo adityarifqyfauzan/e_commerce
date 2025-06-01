@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 
 class SignUpController extends GetxController {
   static SignUpController get instance => Get.find();
