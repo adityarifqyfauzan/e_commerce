@@ -1,8 +1,10 @@
+import 'package:e_commerce/features/authentication/controllers/signup/signup_controller.dart';
 import 'package:e_commerce/utils/constants/colors.dart';
 import 'package:e_commerce/utils/constants/sizes.dart';
 import 'package:e_commerce/utils/constants/text_strings.dart';
 import 'package:e_commerce/utils/helpers/helper_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class TermAndConditionCheckbox extends StatelessWidget {
   const TermAndConditionCheckbox({super.key});
@@ -10,12 +12,18 @@ class TermAndConditionCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = HelperFunctions.isDarkMode(context);
+    final controller = Get.put(SignUpController());
     return Row(
       children: [
         SizedBox(
           width: TSizes.defaultSpace,
           height: TSizes.defaultSpace,
-          child: Checkbox(value: false, onChanged: (value) {}),
+          child: Obx(
+            () => Checkbox(
+              value: controller.iAgree.value,
+              onChanged: controller.isIAgree,
+            ),
+          ),
         ),
         SizedBox(width: TSizes.spaceBtwItems),
         Text.rich(

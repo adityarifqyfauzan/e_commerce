@@ -2,7 +2,7 @@ import 'package:e_commerce/features/authentication/controllers/login/login_contr
 import 'package:e_commerce/utils/constants/sizes.dart';
 import 'package:e_commerce/utils/constants/text_strings.dart';
 import 'package:flutter/material.dart';
-import 'package:get/instance_manager.dart';
+import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 
 class LoginForm extends StatelessWidget {
@@ -17,22 +17,47 @@ class LoginForm extends StatelessWidget {
         child: Column(
           children: [
             /// email
-            TextFormField(
-              decoration: InputDecoration(
-                prefixIcon: Icon(Iconsax.direct_right),
-                label: Text(TTexts.email),
+            Obx(
+              () => TextFormField(
+                controller: controller.emailController,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Iconsax.direct_right),
+                  label: Text(TTexts.email),
+                  errorText:
+                      controller.emailError.value.isEmpty
+                          ? null
+                          : controller.emailError.value,
+                ),
+                onChanged: (_) => controller.validateEmail(),
               ),
             ),
             SizedBox(height: TSizes.spaceBtwInputFields),
 
             /// password
-            TextFormField(
-              decoration: InputDecoration(
-                prefixIcon: Icon(Iconsax.password_check),
-                label: Text(TTexts.password),
-                suffix: Icon(Iconsax.eye_slash),
+            Obx(
+              () => TextFormField(
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Iconsax.password_check),
+                  label: Text(TTexts.password),
+                  suffix: GestureDetector(
+                    onTap: controller.obscurePasswordField,
+                    child: Icon(
+                      controller.obscurePassword.value
+                          ? Iconsax.eye_slash
+                          : Iconsax.eye,
+                    ),
+                  ),
+                  errorText:
+                      controller.passwordError.value.isEmpty
+                          ? null
+                          : controller.passwordError.value,
+                ),
+                controller: controller.passwordController,
+                onChanged: (_) => controller.validatePassword(),
+                obscureText: controller.obscurePassword.value,
               ),
             ),
+
             SizedBox(height: TSizes.spaceBtwInputFields / 2),
 
             /// remember me and forget password
@@ -42,7 +67,12 @@ class LoginForm extends StatelessWidget {
                 /// remember me
                 Row(
                   children: [
-                    Checkbox(value: false, onChanged: (value) {}),
+                    Obx(
+                      () => Checkbox(
+                        onChanged: controller.rememberMe,
+                        value: controller.rememberMeState.value,
+                      ),
+                    ),
                     const Text(TTexts.rememberMe),
                   ],
                 ),
@@ -60,7 +90,7 @@ class LoginForm extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: controller.signIn,
                 child: Text(TTexts.signIn),
               ),
             ),
