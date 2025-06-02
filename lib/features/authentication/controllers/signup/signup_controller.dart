@@ -1,3 +1,8 @@
+import 'package:e_commerce/features/authentication/screens/signup/verify_email.dart';
+import 'package:e_commerce/utils/constants/image_strings.dart';
+import 'package:e_commerce/utils/constants/text_strings.dart';
+import 'package:e_commerce/utils/popups/full_screen_loader.dart';
+import 'package:e_commerce/utils/popups/loaders.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
@@ -19,9 +24,10 @@ class SignUpController extends GetxController {
 
   Rx<String> phoneNumberError = "".obs;
   Rx<bool> isPhoneNumberError = true.obs;
+  Rx<String> countryCode = "".obs;
 
-  Rx<String> passwordError = "".obs;
   Rx<bool> isPasswordError = true.obs;
+  var passwordErrors = <String>[].obs;
 
   Rx<String> reTypePasswordError = "".obs;
   Rx<bool> isReTypePasswordError = true.obs;
@@ -36,8 +42,8 @@ class SignUpController extends GetxController {
   void validateFirstName() {
     firstNameError.value = "";
     isFirstNameError.value = true;
-
-    if (firstNameController.text.isEmpty) {
+    var value = firstNameController.text;
+    if (value.isEmpty) {
       firstNameError.value = "Required!";
     } else {
       isFirstNameError.value = false;
@@ -47,10 +53,11 @@ class SignUpController extends GetxController {
   void validateUsername() {
     usernameError.value = "";
     isUsernameError.value = true;
-
-    if (usernameController.text.isEmpty) {
+    var value = usernameController.text;
+    if (value.isEmpty) {
       usernameError.value = "Username is required!";
     } else {
+      usernameController.text = value;
       isUsernameError.value = false;
     }
 
@@ -60,9 +67,10 @@ class SignUpController extends GetxController {
   void validateEmail() {
     emailError.value = "";
     isEmailError.value = true;
-    if (emailController.text.isEmpty) {
+    var value = emailController.text;
+    if (value.isEmpty) {
       emailError.value = "Email is required!";
-    } else if (!GetUtils.isEmail(emailController.text)) {
+    } else if (!GetUtils.isEmail(value)) {
       emailError.value = "Email is invalid!";
     } else {
       isEmailError.value = false;
@@ -74,42 +82,66 @@ class SignUpController extends GetxController {
   void validatePhoneNumber() {
     phoneNumberError.value = "";
     isPhoneNumberError.value = true;
-    if (phoneNumberController.text.isEmpty) {
+    var value = phoneNumberController.text;
+    if (value.isEmpty) {
       phoneNumberError.value = "Phone Number is required!";
     } else {
       isPhoneNumberError.value = false;
     }
   }
 
-  void validatePassword() {
-    passwordError.value = "";
-    isPasswordError.value = true;
+  String completedPhoneNumber() {
+    return countryCode + phoneNumberController.text;
+  }
 
+  void validatePassword() {
+    final errors = <String>[];
+    isPasswordError.value = true;
     var value = passwordController.text;
     if (value.isEmpty) {
-      passwordError.value = "Password is required";
-    } else if (value.length < 8) {
-      passwordError.value = "Password of at least 8 characters";
-    } else {
-      isPasswordError.value = false;
-    }
+      errors.add("Password cannot be empty.");
+    }  
+    
+    if (!RegExp(r'(?=.*[a-z])').hasMatch(value)) {
+      errors.add("At least 1 lowercase letter.");
+    }  
+    
+    if (!RegExp(r'(?=.*[A-Z])').hasMatch(value)) {
+      errors.add("At least 1 uppercase letter.");
+    }  
+    
+    if (!RegExp(r'(?=.*[0-9])').hasMatch(value)) {
+      errors.add("At least 1 number.");
+    }  
+    
+    if (!RegExp(r'(?=.*[!@#\$&*~])').hasMatch(value)) {
+      errors.add("At least 1 special character.");
+    }  
+    
+    if (value.length < 8) {
+      errors.add("Minimum 8 characters.");
+    } 
+
+    passwordErrors.value = errors;
+    isPasswordError.value = errors.isNotEmpty;
   }
 
   void validateReTypePassword() {
     reTypePasswordError.value = "";
     isReTypePasswordError.value = true;
-    if (reTypePasswordController.text.isEmpty) {
+    var value = reTypePasswordController.text;
+    if (value.isEmpty) {
       reTypePasswordError.value = "Retype Password is required";
-    } else if (reTypePasswordController.text.length < 8) {
+    } else if (value.length < 8) {
       reTypePasswordError.value = "Retype Password of at least 8 characters";
-    } else if (passwordController.text != reTypePasswordController.text) {
+    } else if (passwordController.text != value) {
       reTypePasswordError.value = "Retype Password is not match with Password!";
     } else {
       isReTypePasswordError.value = false;
     }
   }
 
-  void signUp() {
+  void signUp() async {
     validateFirstName();
     validateUsername();
     validateEmail();
@@ -117,18 +149,24 @@ class SignUpController extends GetxController {
     validatePassword();
     validateReTypePassword();
 
-    if (isFirstNameError.value || isUsernameError.value || isEmailError.value || isPhoneNumberError.value || isPasswordError.value || isReTypePasswordError.value) {
+    if (isFirstNameError.value ||
+        isUsernameError.value ||
+        isEmailError.value ||
+        isPhoneNumberError.value ||
+        isPasswordError.value ||
+        isReTypePasswordError.value) {
       // summon toast
-      print("is not validate");
       return;
     }
-
     if (!iAgree.value) {
-      print("you must agree with term and condition");      
+      Loaders.errorSnackBar(title: "Ups", message: TTexts.privacyPolicyTermOfUseError);
       return;
     }
     // call api sign up here
-    print("call api signup");
+    FullScreenLoader.openLoadingDialog("Please Wait!", TImages.loadingJuggle);
+    await Future.delayed(const Duration(seconds: 3));
+    FullScreenLoader.stopLoading();
+    Get.off(() => const VerifyEmailScreen());
   }
 
   void obscurePasswordField() {

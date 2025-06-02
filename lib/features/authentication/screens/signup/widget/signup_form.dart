@@ -1,10 +1,14 @@
+import 'package:e_commerce/common/widgets/form/password_with_validation_field.dart';
 import 'package:e_commerce/features/authentication/controllers/signup/signup_controller.dart';
 import 'package:e_commerce/features/authentication/screens/signup/widget/term_and_condition_checkbox.dart';
+import 'package:e_commerce/utils/constants/colors.dart';
 import 'package:e_commerce/utils/constants/sizes.dart';
 import 'package:e_commerce/utils/constants/text_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 
 class SignUpForm extends StatelessWidget {
   const SignUpForm({super.key});
@@ -92,17 +96,24 @@ class SignUpForm extends StatelessWidget {
 
           /// phone number
           Obx(
-            () => TextFormField(
-              expands: false,
+            () => IntlPhoneField(
               decoration: InputDecoration(
+                hintText: TTexts.phoneNoHints,
+                hintStyle: TextStyle(color: TColors.darkGrey),
                 labelText: TTexts.phoneNo,
-                prefixIcon: Icon(Iconsax.call),
+                border: OutlineInputBorder(borderSide: BorderSide()),
                 errorText:
                     controller.phoneNumberError.value.isEmpty
                         ? null
                         : controller.phoneNumberError.value,
               ),
-              onChanged: (_) => controller.validatePhoneNumber(),
+              initialCountryCode: 'ID', // default Indonesia
+              onChanged: (value) {
+                controller.countryCode.value = value.countryCode;
+                controller.validatePhoneNumber();
+              },
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               controller: controller.phoneNumberController,
             ),
           ),
@@ -110,31 +121,8 @@ class SignUpForm extends StatelessWidget {
           const SizedBox(height: TSizes.spaceBtwInputFields),
 
           /// password
-          Obx(
-            () => TextFormField(
-              expands: false,
-              decoration: InputDecoration(
-                labelText: TTexts.password,
-                prefixIcon: Icon(Iconsax.password_check),
-                suffix: GestureDetector(
-                  onTap: controller.obscurePasswordField,
-                  child: Icon(
-                    controller.obscurePassword.value
-                        ? Iconsax.eye_slash
-                        : Iconsax.eye,
-                  ),
-                ),
-                errorText:
-                    controller.passwordError.value.isEmpty
-                        ? null
-                        : controller.passwordError.value,
-              ),
-              onChanged: (_) => controller.validatePassword(),
-              controller: controller.passwordController,
-              obscureText: controller.obscurePassword.value,
-            ),
-          ),
-
+          PasswordWithValidationField(),
+          
           const SizedBox(height: TSizes.spaceBtwInputFields),
 
           Obx(
@@ -157,8 +145,8 @@ class SignUpForm extends StatelessWidget {
                         : controller.reTypePasswordError.value,
               ),
               obscureText: controller.obscureReTypePassword.value,
-              controller: controller.reTypePasswordController,
               onChanged: (_) => controller.validateReTypePassword(),
+              controller: controller.reTypePasswordController,
             ),
           ),
 
